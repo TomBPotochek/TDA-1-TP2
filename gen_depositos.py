@@ -50,7 +50,9 @@ if __name__ == '__main__':
 
     with open("depositos.txt", "w") as file:
         for i,j in product(range(N), repeat=2):
-            if i >= j:
+            if i == j:
+                continue
+            if -60 < get_cost() < 50: #para saltear algunas
                 continue
             file.write(f"{ciudades[i]},{ciudades[j]},{get_cost()}\n")
 
