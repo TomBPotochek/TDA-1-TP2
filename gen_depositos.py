@@ -42,17 +42,22 @@ if __name__ == '__main__':
     
     if args.seed is not None:
         random.seed(args.seed)
-    
-    get_cost = lambda : random.randint(-100, 100)
+
+    min,max = -100, 100 # valores al azar de costo
+                        # entre min y max
+    get_cost = lambda : random.randint(min, max)
 
     from itertools import product    
     ciudades = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" #26
+    prob_saltear_ciudad = 0.55 #mas alto, menos conexo
 
+    #no garantiza que todas las ciudades esten conectadas a alguna
+    #otra ciudad. en ese caso, correlo de nuevo con otra semilla
     with open("depositos.txt", "w") as file:
         for i,j in product(range(N), repeat=2):
             if i == j:
                 continue
-            if -60 < get_cost() < 50: #para saltear algunas
+            if (get_cost()-min)/(max-min) < prob_saltear_ciudad: #para saltear algunas
                 continue
             file.write(f"{ciudades[i]},{ciudades[j]},{get_cost()}\n")
 
