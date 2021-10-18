@@ -1,12 +1,7 @@
 
-
-
-
-from itertools import repeat
-from math import prod
-
-
 if __name__ == '__main__':
+    from itertools import repeat
+    from math import prod
     import argparse
     from argparse import ArgumentParser
 
