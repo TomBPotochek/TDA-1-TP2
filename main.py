@@ -155,6 +155,7 @@ def johnson(grafo: Ciudades, costos: costos_t):
         for v in grafo.lista:
             print(f"{str(matriz_costos_finales[u, v])} ".rjust(4, " "), end="")
         print()
+        
     return matriz_costos_finales
 
 
