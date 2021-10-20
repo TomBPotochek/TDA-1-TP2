@@ -143,18 +143,6 @@ def johnson(grafo: Ciudades, costos: costos_t):
             matriz_costos_finales[u, v] = costos_dijkstra[v] \
                 + costos_bellmanFord[v] \
                 - costos_bellmanFord[u]
-    
-    print("Matriz de costos mínimos para ir de X a Y:")
-    print()
-    print("     ", end="")
-    for u in grafo.lista:
-        print(f" {u}  ", end="")
-    print()
-    for u in grafo.lista:
-        print(f" {u}  ", end="")
-        for v in grafo.lista:
-            print(f"{str(matriz_costos_finales[u, v])} ".rjust(4, " "), end="")
-        print()
         
     return matriz_costos_finales
 
@@ -191,4 +179,17 @@ if __name__ == '__main__':
 
     matriz = johnson(ciudades, costos)
     res = elegir_ciudad(matriz, ciudades.lista)
+
+    print("Matriz de costos mínimos para ir de X a Y:")
+    print()
+    print("     ", end="")
+    for u in ciudades.lista:
+        print(f" {u}  ", end="")
+    print()
+    for u in ciudades.lista:
+        print(f" {u}  ", end="")
+        for v in ciudades.lista:
+            print(f"{matriz[u, v]} ".rjust(4, " "), end="")
+        print()
+
     print(f"la ciudad dónde conviene colocar la fábrica es {res}")
