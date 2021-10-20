@@ -5,12 +5,12 @@ from dataclasses import dataclass
 from typing import DefaultDict, List, Tuple, Set
 
 
+
 @dataclass
 class Ciudades:
-    """el grafo de ciudades por lista de adyacencias, 
-    costos y total de ciudades"""
+    """el grafo de ciudades por lista de adyacencias 
+    y total de ciudades"""
     adyacencias: DefaultDict[str, List[str]]
-    costos: DefaultDict[Tuple[str, str], int]
     lista: Set[str]
 
     def iterar(self):
@@ -23,6 +23,7 @@ class Ciudades:
 
 INF = math.inf  # '<infinito>'
 path = str
+costos_t = DefaultDict[Tuple[str, str], int]
 
 
 def parse_file(depositos: path) -> Ciudades:
@@ -40,10 +41,10 @@ def parse_file(depositos: path) -> Ciudades:
             grafo_ciudades[a].append(b)
             matriz_costos[a, b] = costo
             total_ciudades |= {a, b}
-    return Ciudades(grafo_ciudades, matriz_costos, total_ciudades)
+    return Ciudades(grafo_ciudades, total_ciudades),  matriz_costos
 
 
-def dijkstra(grafo: Ciudades, vertice_fuente: str):
+def dijkstra(grafo: Ciudades, costos: costos_t, vertice_fuente: str):
     import heapq
     entries = {}  # sirve para actualizar pesos
     min_queue = []
@@ -51,7 +52,7 @@ def dijkstra(grafo: Ciudades, vertice_fuente: str):
     # init de pesos desde fuente en heap de minimos
     for v in grafo.lista:
         if v == vertice_fuente:
-            # entry = [distancia de vertice a fuente, vertice, predecesor de v]
+    # entry = [distancia de vertice a fuente, vertice, predecesor de v]
             entry = [0, v, None]
         else:
             entry = [INF, v, None]
@@ -63,17 +64,18 @@ def dijkstra(grafo: Ciudades, vertice_fuente: str):
         costo_actual_u, u, _ = heapq.heappop(min_queue)
         for v in grafo.adyacencias[u]:
             costo_actual_v = entries[v][0]
-            costo_nuevo_v = costo_actual_u + grafo.costos[u, v]
+            costo_nuevo_v = costo_actual_u + costos[u, v]
             if costo_actual_v > costo_nuevo_v:
                 entries[v][0] = costo_nuevo_v
                 entries[v][2] = u
         heapq.heapify(min_queue)  # mantener la condicion heap
 
-    # return {ciud:(entries[ciud][0],entries[ciud][2]) for ciud in entries}
-    return {ciud: entries[ciud][2] for ciud in entries}
+    predecesores = {ciud: entries[ciud][2] for ciud in entries}
+    costos_desde_fuente = {ciud: entries[ciud][0] for ciud in entries}
+    return predecesores, costos_desde_fuente
 
 
-def bellmanFord(grafo: Ciudades, vertice_fuente: str):
+def bellmanFord(grafo: Ciudades, costos: costos_t, vertice_fuente: str):
 
     # init
     pesos_desde_fuente = defaultdict(lambda: INF)
@@ -85,16 +87,63 @@ def bellmanFord(grafo: Ciudades, vertice_fuente: str):
     for i in range(1, len(grafo.lista)):
         for u, v in grafo.iterar():
             costo_viejo = pesos_desde_fuente[v]
-            costo_nuevo = pesos_desde_fuente[u] + grafo.costos[u, v]
+            costo_nuevo = pesos_desde_fuente[u] + costos[u, v]
             if costo_viejo > costo_nuevo:
                 pesos_desde_fuente[v] = costo_nuevo
                 predecesores[v] = u
 
     for u, v in grafo.iterar():
         peso_u, peso_v = pesos_desde_fuente[u], pesos_desde_fuente[v]
-        if peso_v > peso_u + grafo.costos[u, v]:
-            return False, None
-    return True, predecesores
+        if peso_v > peso_u + costos[u, v]:
+            return False, None, None
+    return True, predecesores, pesos_desde_fuente
+
+
+def johnson(grafo: Ciudades, costos: costos_t):
+    from copy import deepcopy
+    grafo_con_extra_vertice = deepcopy(grafo)
+    costos_con_extra_v = deepcopy(costos)
+    # podria no hacer una copia y en su lugar agregar lo que
+    # necesito a 'grafo' y luego quitarselo, pero como
+    # en python no se puede obligar el pasaje de variables
+    # por copia, lo hago asi para no generar efectos
+    # secundarios.
+
+    extra_vertice = "0"
+    # init del extra vertice
+    for ciud in grafo_con_extra_vertice.lista:
+        costos_con_extra_v[extra_vertice, ciud] = 0
+
+    grafo_con_extra_vertice.adyacencias[extra_vertice] = [
+        c for c in grafo_con_extra_vertice.lista]
+
+    grafo_con_extra_vertice.lista.add(extra_vertice)
+
+    # uso de bellman-ford
+    sin_ciclos, _, costos_bellmanFord = bellmanFord(
+        grafo_con_extra_vertice, costos_con_extra_v, extra_vertice)
+    if not sin_ciclos:
+        print("el grafo de ciudades contiene un ciclo negativo")
+        return None
+
+    # reponderacion con bellman-ford
+    costos_reponderados = {}
+    for u, v in grafo_con_extra_vertice.iterar():
+        costos_reponderados[u, v] = costos_con_extra_v[u, v] \
+            + costos_bellmanFord[u] \
+            - costos_bellmanFord[v]
+
+    matriz_costos_finales = {}
+
+    # combinacion con dijkstra por cada ciudad
+    costos_dijkstra = {}
+    for u in grafo.lista:
+        _, costos_dijkstra = dijkstra(grafo, costos_reponderados, u)
+        for v in grafo.lista:
+            matriz_costos_finales[u, v] = costos_dijkstra[v] \
+                + costos_bellmanFord[u] \
+                - costos_bellmanFord[v]
+    return matriz_costos_finales
 
 
 if __name__ == '__main__':
@@ -111,7 +160,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    ciudades = parse_file(args.archivo)
+    ciudades, costos = parse_file(args.archivo)
 
     # para ir viendo/debuggear
-    print(dijkstra(ciudades, "A"), bellmanFord(ciudades, "A"))
+    res = johnson(ciudades, costos)
+    print(res)
