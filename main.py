@@ -2,8 +2,7 @@ import math
 from collections import defaultdict
 
 from dataclasses import dataclass
-from typing import DefaultDict, List, Tuple, Set
-
+from typing import DefaultDict, Dict, List, Tuple, Set, Iterable
 
 
 @dataclass
@@ -52,7 +51,7 @@ def dijkstra(grafo: Ciudades, costos: costos_t, vertice_fuente: str):
     # init de pesos desde fuente en heap de minimos
     for v in grafo.lista:
         if v == vertice_fuente:
-    # entry = [distancia de vertice a fuente, vertice, predecesor de v]
+            # entry = [distancia de vertice a fuente, vertice, predecesor de v]
             entry = [0, v, None]
         else:
             entry = [INF, v, None]
@@ -104,7 +103,7 @@ def johnson(grafo: Ciudades, costos: costos_t):
     grafo_con_extra_vertice = deepcopy(grafo)
     costos_con_extra_v = deepcopy(costos)
     # podria no hacer una copia y en su lugar agregar lo que
-    # necesito a 'grafo' y luego quitarselo, pero como
+    # necesito a 'grafo', pero como
     # en python no se puede obligar el pasaje de variables
     # por copia, lo hago asi para no generar efectos
     # secundarios.
@@ -143,7 +142,19 @@ def johnson(grafo: Ciudades, costos: costos_t):
             matriz_costos_finales[u, v] = costos_dijkstra[v] \
                 + costos_bellmanFord[u] \
                 - costos_bellmanFord[v]
+    
     return matriz_costos_finales
+
+
+def elegir_ciudad(matriz_costos: Dict, lista_ciudades: Iterable):
+    from itertools import product
+    costo_tot_por_ciud = DefaultDict(lambda: 0)
+
+    for u, v in product(lista_ciudades, repeat=2):
+        costo_tot_por_ciud[u] += matriz_costos[u, v]
+
+    ciud, _ = min(costo_tot_por_ciud.items(), key=lambda x: x[1])
+    return ciud
 
 
 if __name__ == '__main__':
@@ -162,6 +173,6 @@ if __name__ == '__main__':
 
     ciudades, costos = parse_file(args.archivo)
 
-    # para ir viendo/debuggear
-    res = johnson(ciudades, costos)
-    print(res)
+    matriz = johnson(ciudades, costos)
+    res = elegir_ciudad(matriz, ciudades.lista)
+    print(f"la ciudad que conviene es {res}")
