@@ -1,4 +1,7 @@
 
+from sys import maxsize
+
+
 if __name__ == '__main__':
     from itertools import repeat
     from math import prod
@@ -36,7 +39,12 @@ if __name__ == '__main__':
     N = args.num_ciudades
     
     if args.seed is not None:
-        random.seed(args.seed)
+        seed = args.seed
+    else:
+        from sys import maxsize
+        seed = random.randrange(maxsize)
+        print(f"seed = {seed}")
+    random.seed(seed)
 
     min,max = -100, 100 # valores al azar de costo
                         # entre min y max
