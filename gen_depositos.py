@@ -1,5 +1,8 @@
-
 from sys import maxsize
+
+prob_saltear_ciudad = 0.55 #mas alto, menos conexo
+min,max = -100, 100 # valores al azar de costo
+                    # entre min y max
 
 
 if __name__ == '__main__':
@@ -46,13 +49,10 @@ if __name__ == '__main__':
         print(f"seed = {seed}")
     random.seed(seed)
 
-    min,max = -100, 100 # valores al azar de costo
-                        # entre min y max
     get_cost = lambda : random.randint(min, max)
 
     from itertools import product    
     ciudades = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" #26
-    prob_saltear_ciudad = 0.55 #mas alto, menos conexo
 
     #no garantiza que todas las ciudades esten conectadas a alguna
     #otra ciudad. en ese caso, correlo de nuevo con otra semilla
