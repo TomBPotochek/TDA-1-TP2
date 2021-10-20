@@ -1,3 +1,4 @@
+
 import math
 from collections import defaultdict
 
@@ -140,10 +141,24 @@ def johnson(grafo: Ciudades, costos: costos_t):
         _, costos_dijkstra = dijkstra(grafo, costos_reponderados, u)
         for v in grafo.lista:
             matriz_costos_finales[u, v] = costos_dijkstra[v] \
-                + costos_bellmanFord[u] \
-                - costos_bellmanFord[v]
+                + costos_bellmanFord[v] \
+                - costos_bellmanFord[u]
     
+    print("Matriz de costos mínimos para ir de X a Y:")
+    print()
+    print("     ", end="")
+    for u in grafo.lista:
+        print(f" {u}  ", end="")
+    print()
+    for u in grafo.lista:
+        print(f" {u}  ", end="")
+        for v in grafo.lista:
+            print(f"{str(matriz_costos_finales[u, v])} ".rjust(4, " "), end="")
+        print()
     return matriz_costos_finales
+
+
+ 
 
 
 def elegir_ciudad(matriz_costos: Dict, lista_ciudades: Iterable):
@@ -175,4 +190,4 @@ if __name__ == '__main__':
 
     matriz = johnson(ciudades, costos)
     res = elegir_ciudad(matriz, ciudades.lista)
-    print(f"la ciudad que conviene es {res}")
+    print(f"la ciudad dónde conviene colocar la fábrica es {res}")
